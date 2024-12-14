@@ -441,6 +441,73 @@ remove stack operation will take time O(n).
 
 */
 
+#ifdef STACK_ARR_STREAMLINED
+
+#define ITEM_TYPE void *
+typedef struct stack_ stack_t;
+typedef ITEM_TYPE item_t;
+
+struct stack_
+{
+    item_t *arr;
+    size_t top;
+    size_t max_size;
+};
+
+stack_t *create_stack(size_t max_size)
+{
+    stack_t *stack = (stack_t *)allocate(sizeof(stack_t));
+    if (!stack)
+    {
+        return NULL;
+    }
+
+    item_t *arr = (item_t *)allocate(max_size * sizeof(item_t));
+    if (!stack)
+    {
+        return NULL;
+    }
+
+    stack->arr = arr;
+    stack->top = 0;
+    stack->max_size = max_size;
+    return stack;
+}
+
+bool push(item_t item, stack_t *stack)
+{
+    if (stack->top >= stack->max_size)
+    {
+        return false;
+    }
+
+    stack->arr[stack->top++] = item;
+    return true;
+}
+
+item_t pop(stack_t *stack)
+{
+    return stack->arr[--stack->top];
+}
+
+item_t peek(stack_t *stack)
+{
+    return stack->arr[stack->top - 1];
+}
+
+bool is_empty(stack_t *stack)
+{
+    return (stack->top == 0);
+}
+
+void delete_stack(stack_t *stack)
+{
+    deallocate(stack->arr);
+    deallocate(stack);
+}
+
+#endif
+
 #ifdef STACK_ARR_BASIC
 
 #define ITEM_TYPE void *
@@ -656,5 +723,111 @@ result_t delete_stack(stack_t *stack)
 }
 
 #endif
+
+// #ifdef STACK_LINKED_LIST
+
+#define ITEM_TYPE void *
+
+typedef struct node_ node_t;
+typedef node_t stack_t;
+typedef ITEM_TYPE item_t;
+
+struct node_
+{
+    node_t *next_node;
+    item_t item;
+};
+
+stack_t *create_stack()
+{
+    stack_t *stack = (stack_t *)allocate(sizeof(stack_t));
+    if (!stack)
+    {
+        return NULL;
+    }
+
+    stack->next_node = NULL;
+    return stack;
+}
+
+bool is_empty(stack_t *stack)
+{
+    if (!stack)
+    {
+        return true;
+    }
+    return (!stack->next_node);
+}
+
+bool push(item_t item, stack_t *stack)
+{
+    if (!stack)
+    {
+        return false;
+    }
+
+    node_t *new_top = (node_t *)allocate(sizeof(node_t));
+    if (!new_top)
+    {
+        return false;
+    }
+
+    stack_t *old_top = stack->next_node;
+    new_top->next_node = old_top;
+    new_top->item = item;
+
+    stack->next_node = new_top;
+
+    return true;
+}
+
+item_t pop(stack_t *stack)
+{
+    if (!stack)
+    {
+        return (item_t)NULL;
+    }
+
+    node_t *top = stack->next_node;
+    item_t item = top->item;
+
+    stack->next_node = top->next_node;
+    deallocate(top);
+
+    top = NULL;
+
+    return item;
+}
+
+item_t peek(stack_t *stack)
+{
+    if (!stack)
+    {
+        return (item_t)NULL;
+    }
+
+    return stack->next_node->item;
+}
+
+bool delete_stack(stack_t *stack)
+{
+    if (!stack)
+    {
+        return false;
+    }
+
+    while (stack)
+    {
+        node_t *tmp = stack->next_node;
+        deallocate(stack);
+        stack = tmp;
+    }
+
+    stack = NULL;
+
+    return true;
+}
+
+// #endif
 
 #endif /* A4AA5F91_C34B_4B17_863D_CAC9481DC891 */
