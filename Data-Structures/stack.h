@@ -724,7 +724,9 @@ result_t delete_stack(stack_t *stack)
 
 #endif
 
-// #ifdef STACK_LINKED_LIST
+#ifdef STACK_LINKED_LIST
+
+// (stack node) -> (stack top) -> (next) -> (next) -> NULL
 
 #define ITEM_TYPE void *
 
@@ -828,6 +830,260 @@ bool delete_stack(stack_t *stack)
     return true;
 }
 
-// #endif
+#endif
+
+#ifdef STACK_BLOCK
+
+#define ITEM_TYPE void *
+
+typedef ITEM_TYPE item_t;
+typedef struct block_ block_t;
+typedef block_t stack_t;
+
+struct block_
+{
+    block_t *previous_block;
+    item_t *block_arr;
+    size_t block_top;
+    size_t max_block_size;
+};
+
+stack_t *create_stack(size_t max_block_size)
+{
+    if (!max_block_size)
+    {
+        return NULL;
+    }
+
+    stack_t *stack = (stack_t *)allocate(sizeof(stack_t));
+    if (!stack)
+    {
+        return NULL;
+    }
+
+    stack->block_arr = (item_t *)allocate(sizeof(item_t) * max_block_size);
+    if (!stack->block_arr)
+    {
+        return NULL;
+    }
+
+    stack->previous_block = NULL;
+    stack->block_top = 0;
+    stack->max_block_size = max_block_size;
+
+    return stack;
+}
+
+bool push(item_t item, stack_t *stack)
+{
+    if (stack->block_top >= stack->max_block_size)
+    {
+        block_t *new_block = (block_t *)allocate(sizeof(block_t));
+        if (!new_block)
+        {
+            return false;
+        }
+
+        new_block->max_block_size = stack->max_block_size;
+        new_block->block_arr = (item_t *)allocate(sizeof(item_t) * new_block->max_block_size);
+        if (!new_block->block_arr)
+        {
+            return false;
+        }
+
+        new_block->previous_block = stack;
+        new_block->block_top = 0;
+
+        new_block->block_arr[new_block->block_top++] = item;
+
+        stack = (stack_t *)new_block;
+    }
+    else
+    {
+        stack->block_arr[stack->block_top++] = item;
+    }
+
+    return true;
+}
+
+item_t pop(stack_t *stack)
+{
+    if (!stack->block_top)
+    {
+        stack_t *old = stack->previous_block;
+        deallocate(stack);
+
+        item_t temp = old->block_arr[--old->block_top];
+        stack = (stack_t *)old;
+
+        return temp;
+    }
+
+    return stack->block_arr[--stack->block_top];
+}
+
+item_t peek(stack_t *stack)
+{
+    if (!stack->block_top)
+    {
+        stack_t *old = stack->previous_block;
+        item_t temp = old->block_arr[old->block_top - 1];
+
+        return temp;
+    }
+
+    return stack->block_arr[stack->block_top - 1];
+}
+
+void delete_stack(stack_t *stack)
+{
+    while (stack)
+    {
+        block_t *temp = stack->previous_block;
+        deallocate(stack->block_arr);
+        deallocate(stack);
+        stack = temp;
+    }
+}
+
+#endif
+
+#ifdef STACK_BLOCK_NULL_ERR
+
+#define ITEM_TYPE void *
+
+typedef ITEM_TYPE item_t;
+typedef struct block_ block_t;
+typedef block_t stack_t;
+
+struct block_
+{
+    block_t *previous_block;
+    item_t *block_arr;
+    size_t block_top;
+    size_t max_block_size;
+};
+
+stack_t *create_stack(size_t max_block_size)
+{
+    if (!max_block_size)
+    {
+        return NULL;
+    }
+
+    stack_t *stack = (stack_t *)allocate(sizeof(stack_t));
+    if (!stack)
+    {
+        return NULL;
+    }
+
+    stack->block_arr = (item_t *)allocate(sizeof(item_t) * max_block_size);
+    if (!stack->block_arr)
+    {
+        return NULL;
+    }
+
+    stack->previous_block = NULL;
+    stack->block_top = 0;
+    stack->max_block_size = max_block_size;
+
+    return stack;
+}
+
+bool push(item_t item, stack_t *stack)
+{
+    if (!stack)
+    {
+        return false;
+    }
+
+    if (stack->block_top >= stack->max_block_size)
+    {
+        block_t *new_block = (block_t *)allocate(sizeof(block_t));
+        if (!new_block)
+        {
+            return false;
+        }
+
+        new_block->max_block_size = stack->max_block_size;
+        new_block->block_arr = (item_t *)allocate(sizeof(item_t) * new_block->max_block_size);
+        if (!new_block->block_arr)
+        {
+            return false;
+        }
+
+        new_block->previous_block = stack;
+        new_block->block_top = 0;
+
+        new_block->block_arr[new_block->block_top++] = item;
+
+        stack = (stack_t *)new_block;
+    }
+    else
+    {
+        stack->block_arr[stack->block_top++] = item;
+    }
+
+    return true;
+}
+
+item_t pop(stack_t *stack)
+{
+    if (!stack)
+    {
+        return (item_t)NULL;
+    }
+
+    if (!stack->block_top)
+    {
+        stack_t *old = stack->previous_block;
+        deallocate(stack);
+
+        item_t temp = old->block_arr[--old->block_top];
+        stack = (stack_t *)old;
+
+        return temp;
+    }
+
+    return stack->block_arr[--stack->block_top];
+}
+
+item_t peek(stack_t *stack)
+{
+    if (!stack)
+    {
+        return (item_t)NULL;
+    }
+
+    if (!stack->block_top)
+    {
+        stack_t *old = stack->previous_block;
+        item_t temp = old->block_arr[old->block_top - 1];
+
+        return temp;
+    }
+
+    return stack->block_arr[stack->block_top - 1];
+}
+
+bool delete_stack(stack_t *stack)
+{
+    if (!stack)
+    {
+        return false;
+    }
+
+    while (stack)
+    {
+        block_t *temp = stack->previous_block;
+        deallocate(stack->block_arr);
+        deallocate(stack);
+        stack = temp;
+    }
+
+    return true;
+}
+
+#endif
 
 #endif /* A4AA5F91_C34B_4B17_863D_CAC9481DC891 */
