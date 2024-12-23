@@ -230,6 +230,26 @@ item_t dequeue(queue_t *queue)
     return temp_item;
 }
 
+item_t peek_queue(queue_t *queue)
+{
+    return (queue->front->item);
+}
+
+void delete_queue(queue_t *queue)
+{
+    node_t *current_node = queue->front;
+    node_t *temp_node;
+
+    while (current_node)
+    {
+        temp_node = current_node->next;
+        deallocate(current_node);
+        current_node = temp_node;
+    }
+
+    deallocate(queue);
+}
+
 #endif
 
 /*
@@ -334,6 +354,19 @@ item_t dequeue(queue_t *queue)
     }
 
     return item;
+}
+
+item_t front_element(queue_t *queue)
+{
+    return (queue->next->next->next->item);
+}
+
+void remove_queue(queue_t *queue)
+{
+    node_t *current_node = queue->next->next;
+    node_t *temp_node;
+
+    while ()
 }
 
 #endif
