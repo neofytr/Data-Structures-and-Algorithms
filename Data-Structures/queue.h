@@ -356,7 +356,7 @@ item_t dequeue(queue_t *queue)
     return item;
 }
 
-item_t front_element(queue_t *queue)
+item_t peek_queue(queue_t *queue)
 {
     return (queue->next->next->next->item);
 }
@@ -379,5 +379,112 @@ void remove_queue(queue_t *queue)
 }
 
 #endif
+
+/*
+
+Or one could implement the queue as a doubly linked list, which requires no case distinctions
+at all but needs two pointers per node. Minimizing the number of pointers is an aesthetic criterion
+more justified by the amount of work that has to be done in each step to keep the structure consistent
+than by the amount of memory necessary for the structure. Here is a doubly linked list implementation:
+
+*/
+
+#define DOUBLY_LINKED_LIST_QUEUE
+
+#ifdef DOUBLY_LINKED_LIST_QUEUE
+
+typedef struct node_ node_t;
+typedef node_t queue_t;
+
+typedef void *item_t;
+
+struct node_
+{
+    node_t *next;
+    node_t *prev;
+    item_t item;
+};
+
+queue_t *create_queue()
+{
+    queue_t *queue = (queue_t *)allocate(sizeof(queue_t));
+    if (!queue)
+    {
+        return NULL;
+    }
+
+    queue->prev = queue; // front end of the queue
+    queue->next = queue; // rear end of the queue
+
+    return queue;
+}
+
+bool enqueue(item_t item, queue_t *queue)
+{
+    node_t *new_node = (node_t *)allocate(sizeof(node_t));
+    if (!new_node)
+    {
+        return false;
+    }
+
+    new_node->next = queue->next;
+    new_node->prev = queue;
+    queue->next = new_node;
+    new_node->next->prev = new_node;
+
+    return true;
+}
+
+bool queue_empty(queue_t *queue)
+{
+    return queue->next = queue;
+}
+
+item_t dequeue(queue_t *queue)
+{
+    node_t *front = queue->prev;
+    item_t item = front->item;
+
+    queue->prev = front->prev;
+    front->prev->next = queue;
+
+    deallocate(front);
+    return item;
+}
+
+item_t peek_queue(queue_t *queue)
+{
+    return (queue->prev->item);
+}
+
+void delete_queue(queue_t *queue)
+{
+    node_t *current_node = queue->next;
+    node_t *temp_node;
+
+    while (current_node != queue)
+    {
+        temp_node = current_node->next;
+        deallocate(current_node);
+        current_node = temp_node;
+    }
+
+    deallocate(queue);
+}
+
+#endif
+
+/*
+
+Like the stack, the queue is a dynamic data structure that has the update operations enqueue
+and dequeue and the query operations queue_empty and peek_queue, all of which are constant-time operations,
+and the operations create_queue and delete_queue, which are subject to same restrictions as the similar
+options for the stack: creating an array-based queue required getting a big block of memory
+from the underlying system memory management, whereas creating a list-based queue should require only
+some create node operations; and deleting an array-based queue just involves returning that memory
+block to the system, whereas deleting a list-based queue requires returning every individual node
+sill contained in it, so it will take O(n) time to delete a list-based queue that still contains n items.
+
+*/
 
 #endif /* C8B5EE2B_C413_4E2F_9318_EE10875680B4 */
