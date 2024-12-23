@@ -68,8 +68,6 @@ the length of the array. It could look as follows:
 
 */
 
-#define ARRAY_QUEUE
-
 #ifdef ARRAY_QUEUE
 
 typedef void *item_t;
@@ -148,5 +146,115 @@ void delete_queue(queue_t *queue)
 }
 
 #endif
+
+/*
+
+Again this has the fundamental disadvantage of any array-based structure - that it is of fixed size.
+So it possibly generates overflow errors and does not implement the structure correctly as it limits
+it this way. In addition, it always reserves this expected maximum size for the array, even if never
+needs it. The preferred alternative is a dynamically allocated structure, with a linked list. The obvious
+solution is the following:
+
+*/
+
+#define QUEUE_LINKED_LIST
+#ifdef QUEUE_LINKED_LIST
+
+typedef void *item_t;
+typedef struct node_ node_t;
+
+typedef struct
+{
+    node_t *front;
+    node_t *rear;
+} queue_t;
+
+struct node_
+{
+    item_t item;
+    node_t *next;
+};
+
+queue_t *create_queue()
+{
+    queue_t *new_queue = (queue_t *)allocate(sizeof(queue_t));
+    if (!new_queue)
+    {
+        return NULL;
+    }
+
+    new_queue->rear = NULL;
+    new_queue->front = NULL;
+
+    return new_queue;
+}
+
+bool queue_empty(queue_t *queue)
+{
+    return (!queue->front);
+}
+
+bool enqueue(item_t item, queue_t *queue)
+{
+    node_t *new_node = (node_t *)allocate(sizeof(node_t));
+    if (!new_node)
+    {
+        return false;
+    }
+
+    new_node->item = item;
+    if (!queue->rear) // i.e, if the queue is empty
+    {
+        queue->rear = queue->front = new_node;
+        return true;
+    }
+
+    new_node->next = queue->rear->next;
+    queue->rear = new_node;
+
+    return true;
+}
+
+item_t dequeue(queue_t *queue)
+{
+    node_t *temp = queue->front;
+    item_t temp_item = temp->item;
+
+    queue->front = temp->next;
+    if (queue_empty(queue))
+    {
+        queue->rear = NULL;
+    }
+
+    deallocate(temp);
+    return temp_item;
+}
+
+#endif
+
+/*  
+
+Because we want to remove items from the front of the queue, the pointers in the linked list are 
+oriented from front to the end, where we insert items.
+
+There are two aesthetical disadvantages of this obvious implementation:
+
+1. we need a special entry point structure, which is different from the list nodes, and 
+2. we always need to treat the operations involving an empty queue differently.
+
+For insertions into an empty queue and removal of the last element of the queue, we need to change
+both insertion and removal pointers; for all other operations we change only one of them.
+
+The first disadvantage can be avoided by joining the list together to make it a cyclic list, with the
+last pointer from the end of the queue pointing again to the beginning. We can then do without a 
+front pointer, because the rear point's next component points to the front point. By this, the entry point
+to the queue needs only one pointer, so it is of the same type as the queue nodes.
+
+The second disadvantage can be overcome by inserting a placeholder node in that cyclic list, between
+the rear and front end of the cyclic list. The entry point still points to the rear end or, in the
+case of an empty list, to that placeholder node. Then, at least for the insert, the empty list is
+no longer a special case. So a cyclic list version is the following:
+
+*/
 
 #endif /* C8B5EE2B_C413_4E2F_9318_EE10875680B4 */
