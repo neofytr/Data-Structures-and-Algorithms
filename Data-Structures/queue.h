@@ -157,7 +157,6 @@ solution is the following:
 
 */
 
-#define QUEUE_LINKED_LIST
 #ifdef QUEUE_LINKED_LIST
 
 typedef void *item_t;
@@ -209,7 +208,8 @@ bool enqueue(item_t item, queue_t *queue)
         return true;
     }
 
-    new_node->next = queue->rear->next;
+    queue->rear->next = new_node;
+    new_node->next = NULL;
     queue->rear = new_node;
 
     return true;
@@ -232,21 +232,21 @@ item_t dequeue(queue_t *queue)
 
 #endif
 
-/*  
+/*
 
-Because we want to remove items from the front of the queue, the pointers in the linked list are 
+Because we want to remove items from the front of the queue, the pointers in the linked list are
 oriented from front to the end, where we insert items.
 
 There are two aesthetical disadvantages of this obvious implementation:
 
-1. we need a special entry point structure, which is different from the list nodes, and 
+1. we need a special entry point structure, which is different from the list nodes, and
 2. we always need to treat the operations involving an empty queue differently.
 
 For insertions into an empty queue and removal of the last element of the queue, we need to change
 both insertion and removal pointers; for all other operations we change only one of them.
 
 The first disadvantage can be avoided by joining the list together to make it a cyclic list, with the
-last pointer from the end of the queue pointing again to the beginning. We can then do without a 
+last pointer from the end of the queue pointing again to the beginning. We can then do without a
 front pointer, because the rear point's next component points to the front point. By this, the entry point
 to the queue needs only one pointer, so it is of the same type as the queue nodes.
 
@@ -256,5 +256,86 @@ case of an empty list, to that placeholder node. Then, at least for the insert, 
 no longer a special case. So a cyclic list version is the following:
 
 */
+
+#ifdef CYCLIC_LIST_QUEUE
+
+typedef struct node_ node_t;
+typedef node_t queue_t;
+
+typedef void *item_t;
+
+struct node_
+{
+    node_t *next;
+    item_t item;
+};
+
+queue_t *create_queue()
+{
+    queue_t *queue = (queue_t *)allocate(sizeof(queue_t));
+    if (!queue)
+    {
+        return NULL;
+    }
+
+    node_t *placeholder = (node_t *)allocate(sizeof(node_t));
+    if (!placeholder)
+    {
+        deallocate(queue);
+        return NULL;
+    }
+
+    queue->next = placeholder;
+    placeholder->next = placeholder;
+
+    return queue;
+}
+
+bool enqueue(item_t item, queue_t *queue)
+{
+    node_t *new_node = (node_t *)allocate(sizeof(node_t));
+    if (!new_node)
+    {
+        return false;
+    }
+
+    new_node->item = item;
+
+    node_t *rear_end = queue->next;
+    node_t *placeholder = rear_end->next;
+
+    /* If the queue is empty before insertion, both rear_end and placeholder point to the same node, guaranteeing correct behaviour */
+
+    new_node->next = placeholder;
+    rear_end->next = new_node;
+    queue->next = new_node;
+
+    return true;
+}
+
+bool queue_empty(queue_t *queue)
+{
+    return (queue->next->next == queue->next);
+}
+
+item_t dequeue(queue_t *queue)
+{
+    node_t *rear_end = queue->next;
+    node_t *placeholder = rear_end->next;
+    node_t *front = placeholder->next;
+
+    item_t item = front->item;
+
+    placeholder->next = front->next;
+    deallocate(front);
+    if (queue_empty(queue))
+    {
+        queue->next = placeholder;
+    }
+
+    return item;
+}
+
+#endif
 
 #endif /* C8B5EE2B_C413_4E2F_9318_EE10875680B4 */
