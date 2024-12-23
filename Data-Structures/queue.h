@@ -102,6 +102,11 @@ queue_t *create_queue(size_t size)
     return new_queue;
 }
 
+bool queue_empty(queue_t *queue)
+{
+    return (queue->front == queue->rear);
+}
+
 #endif
 
 #endif /* C8B5EE2B_C413_4E2F_9318_EE10875680B4 */
