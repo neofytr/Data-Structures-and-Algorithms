@@ -78,6 +78,28 @@ typedef struct
     size_t front;
     size_t rear;
     size_t size;
+} queue_t;
+
+queue_t *create_queue(size_t size)
+{
+    queue_t *new_queue = (queue_t *)allocate(sizeof(queue_t));
+    if (!new_queue)
+    {
+        return NULL;
+    }
+
+    new_queue->size = size;
+    new_queue->front = 0;
+    new_queue->rear = 0;
+
+    new_queue->base = (item_t *)allocate(sizeof(item_t) * new_queue->size);
+    if (!new_queue->base)
+    {
+        deallocate(new_queue);
+        return NULL;
+    }
+
+    return new_queue;
 }
 
 #endif
