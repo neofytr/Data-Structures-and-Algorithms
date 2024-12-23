@@ -68,6 +68,8 @@ the length of the array. It could look as follows:
 
 */
 
+#define ARRAY_QUEUE
+
 #ifdef ARRAY_QUEUE
 
 typedef void *item_t;
@@ -105,6 +107,44 @@ queue_t *create_queue(size_t size)
 bool queue_empty(queue_t *queue)
 {
     return (queue->front == queue->rear);
+}
+
+bool queue_full(queue_t *queue)
+{
+    return (queue->front == (queue->rear + 1) & (queue->size - 1)); // for this to work, size of queue must be a non-negative integral power of 2
+}
+
+bool enqueue(item_t item, queue_t *queue)
+{
+    size_t new_rear = (queue->rear + 1) & (queue->size - 1); // for this to work, size of queue must be a non-negative integral power of 2
+    if (queue->front == new_rear)                            // checks if the queue is full
+    {
+        return false;
+    }
+    queue->base[queue->rear] = item;
+    queue->rear = new_rear;
+
+    return true;
+}
+
+item_t dequeue(queue_t *queue)
+{
+    size_t new_front = (queue->front + 1) & (queue->size - 1); // for this to work, size of queue must be a non-negative integral power of 2
+    item_t result = queue->base[queue->front];
+    queue->front = new_front;
+
+    return result;
+}
+
+item_t peek_queue(queue_t *queue)
+{
+    return queue->base[queue->front];
+}
+
+void delete_queue(queue_t *queue)
+{
+    deallocate(queue->base);
+    deallocate(queue);
 }
 
 #endif
