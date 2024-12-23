@@ -363,10 +363,19 @@ item_t front_element(queue_t *queue)
 
 void remove_queue(queue_t *queue)
 {
-    node_t *current_node = queue->next->next;
+    node_t *placeholder = queue->next->next;
+    node_t *current_node = queue->next->next->next;
     node_t *temp_node;
 
-    while ()
+    while (current_node != placeholder)
+    {
+        temp_node = current_node->next;
+        deallocate(current_node);
+        current_node = temp_node;
+    }
+
+    deallocate(placeholder);
+    deallocate(queue);
 }
 
 #endif
