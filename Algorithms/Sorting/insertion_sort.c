@@ -10,7 +10,7 @@ void insertion_sort(int64_t *nums, size_t len)
     }
     for (size_t counter = 1; counter < len; counter++)
     {
-        size_t j = counter;
+        size_t j = counter - 1;
         while (j > 0 && nums[j] < nums[j - 1])
         {
             int64_t temp = nums[j - 1];
@@ -48,7 +48,7 @@ int main()
             return EXIT_FAILURE;
         }
         num_len += num_arr->len;
-        // strix_free_strix_arr(num_arr);
+        strix_free_strix_arr(num_arr);
     }
 
     int64_t *nums = (int64_t *)malloc(sizeof(int64_t) * num_len);
@@ -76,7 +76,7 @@ int main()
                 nums[nums_written++] = strix_to_signed_int(num_arr_one->strix_arr[index]);
             }
         }
-        // strix_free_strix_arr(num_arr_one);
+        strix_free_strix_arr(num_arr_one);
     }
 
     strix_free_strix_arr(lines);
