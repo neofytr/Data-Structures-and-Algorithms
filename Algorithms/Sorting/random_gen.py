@@ -1,8 +1,8 @@
 import random
 
 file_path = "input.txt"
-num_numbers = 10**6
-chunk_size = 10**5 
+num_numbers = 10**4
+chunk_size = 10**2
 
 def generate_large_file(file_path, num_numbers, chunk_size):
     with open(file_path, 'w') as file:
