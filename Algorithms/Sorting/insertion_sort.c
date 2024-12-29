@@ -2,19 +2,19 @@
 #include <stdlib.h>
 #include "../../Strix/header/strix.h"
 
-void insertion_sort(int64_t *nums, size_t len)
+void insertion_sort(int64_t *nums, int64_t len)
 {
     if (!nums || !len)
     {
         return;
     }
-    for (size_t counter = 1; counter < len; counter++)
+    for (int64_t counter = 1; counter < len; counter++)
     {
-        size_t j = counter - 1;
-        while (j > 0 && nums[j] < nums[j - 1])
+        int64_t j = counter - 1;
+        while (j >= 0 && nums[j + 1] < nums[j])
         {
-            int64_t temp = nums[j - 1];
-            nums[j - 1] = nums[j];
+            int64_t temp = nums[j + 1];
+            nums[j + 1] = nums[j];
             nums[j] = temp;
             j--;
         }
@@ -87,6 +87,7 @@ int main()
     {
         fprintf(stdout, "%ld\n", nums[counter]);
     }
+    printf("%ld\n", num_len);
 
     free(nums);
     return EXIT_SUCCESS;

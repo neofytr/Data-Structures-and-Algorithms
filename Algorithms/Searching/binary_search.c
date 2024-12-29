@@ -2,38 +2,38 @@
 #include <stdlib.h>
 #include "../../Strix/header/strix.h"
 
-void insertion_sort(int64_t *nums, size_t len)
+void insertion_sort(int64_t *nums, int64_t len)
 {
     if (!nums || !len)
     {
         return;
     }
-    for (size_t counter = 1; counter < len; counter++)
+    for (int64_t counter = 1; counter < len; counter++)
     {
-        size_t j = counter - 1;
-        while (j > 0 && nums[j] < nums[j - 1])
+        int64_t j = counter - 1;
+        while (j >= 0 && nums[j] > nums[j + 1])
         {
-            int64_t temp = nums[j - 1];
-            nums[j - 1] = nums[j];
+            int64_t temp = nums[j + 1];
+            nums[j + 1] = nums[j];
             nums[j] = temp;
             j--;
         }
     }
 }
 
-int64_t binary_search(int64_t *num_arr, int64_t num, size_t len)
+int64_t binary_search(int64_t *num_arr, int64_t num, int64_t len)
 {
     if (!num_arr || !len)
     {
         return -1;
     }
 
-    size_t front = 0;
-    size_t end = len - 1;
+    int64_t front = 0;
+    int64_t end = len - 1;
 
     while (front <= end)
     {
-        size_t mid = front + (end - front) / 2;
+        int64_t mid = (front + end) / 2;
 
         if (num_arr[mid] == num)
         {
@@ -41,10 +41,6 @@ int64_t binary_search(int64_t *num_arr, int64_t num, size_t len)
         }
         else if (num_arr[mid] > num)
         {
-            if (mid == 0)
-            {
-                break;
-            }
             end = mid - 1;
         }
         else
@@ -56,9 +52,13 @@ int64_t binary_search(int64_t *num_arr, int64_t num, size_t len)
     return -1;
 }
 
-int main()
+int main(int argc, char **argv)
 {
-    strix_t *input_strix = conv_file_to_strix("input.txt");
+    if (argc < 3)
+    {
+        return EXIT_FAILURE;
+    }
+    strix_t *input_strix = conv_file_to_strix(argv[2]);
     if (!input_strix)
     {
         return EXIT_FAILURE;
@@ -73,9 +73,9 @@ int main()
 
     strix_free(input_strix);
 
-    size_t num_len = 0;
+    int64_t num_len = 0;
 
-    for (size_t counter = 0; counter < lines->len; counter++)
+    for (int64_t counter = 0; counter < lines->len; counter++)
     {
         strix_t *line = lines->strix_arr[counter];
         position_t *pos = strix_find_all(line, " ");
@@ -99,9 +99,9 @@ int main()
         return EXIT_FAILURE;
     }
 
-    size_t nums_written = 0;
+    int64_t nums_written = 0;
 
-    for (size_t counter = 0; counter < lines->len; counter++)
+    for (int64_t counter = 0; counter < lines->len; counter++)
     {
         strix_t *line = lines->strix_arr[counter];
         strix_arr_t *num_arr = strix_split_by_delim(line, ' ');
@@ -113,11 +113,9 @@ int main()
             return EXIT_FAILURE;
         }
 
-        for (size_t index = nums_written; index < num_arr->len + nums_written; index++)
+        for (int64_t index = nums_written; index < num_arr->len + nums_written; index++)
         {
-            // fprintf(stdout, STRIX_FORMAT"\n", STRIX_PRINT(num_arr->strix_arr[index - nums_written]));
             nums[index] = strix_to_signed_int(num_arr->strix_arr[index - nums_written]);
-            // fprintf(stdout, "%ld\n", nums[index]);
         }
 
         nums_written += num_arr->len;
@@ -125,14 +123,14 @@ int main()
 
     strix_free_strix_arr(lines);
 
-    /* for (size_t counter = 0; counter < num_len; counter++)
+    for (int64_t counter = 0; counter < num_len; counter++)
     {
         fprintf(stdout, "%ld\n", nums[counter]);
-    } */
+    }
 
     insertion_sort(nums, num_len);
 
-    fprintf(stdout, "%ld\n", binary_search(nums, 234, num_len));
+    fprintf(stdout, "%ld\n", binary_search(nums, strtoll(argv[1], NULL, 10), num_len));
 
     free(nums);
     return EXIT_SUCCESS;
